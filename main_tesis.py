@@ -53,13 +53,13 @@ if __name__ == '__main__':
             print('You can play, reset, stop')
             try:
                 cmd=input("What to do: ")
+                """Sending message to Arduino"""
+                arduinoMega.write(cmd.encode())
+                answer = ""
+                
                 while True:
-                    """Sending message to Arduino"""
-                    arduinoMega.write(cmd.encode())
-
                     """Waiting for the answerd"""
                     while arduinoMega.inWaiting()==0: pass
-                    
                     """Getting the answer"""
                     if arduinoMega.inWaiting()>0:
                         count+=1
@@ -68,6 +68,8 @@ if __name__ == '__main__':
                         answer = answer.replace("\\r\\n","")
                         answer = answer.replace("bArduino send: ","")
                         print(answer)
+                        arduinoMega.flushInput() #remove data after reading
+
                         # db_s.add_data(f'measure_{count}',answer)
                         # value_current = int(answer)
                         # if value_current >= value_highest:
@@ -84,7 +86,11 @@ if __name__ == '__main__':
                         # print(f'error from highest->{error_from_highest}')
                         # print(f'error from last->{error_from_last}')
                         # value_last = value_current
-                        arduinoMega.flushInput() #remove data after reading
+                    if answer == "reseted" or answer == "stoped":
+                        print('You can play, reset, stop')
+                        cmd=input("What to do: ")
+                        """Sending message to Arduino"""
+                        arduinoMega.write(cmd.encode())
                     
 
             except KeyboardInterrupt:

@@ -76,11 +76,21 @@ void loop() {
         waiting_signal(200);
         waiting_signal(200);
         delay(2000);
-        msg="play";
+        sendData("reseted");
+        Serial.println("");
+        msg="";
       }
       else{
         if(msg =="stop"){
           all_stop();
+          sendData("stoped");
+          Serial.println("");
+          msg="";
+          waiting_signal(500);
+          waiting_signal(500);
+          waiting_signal(500);
+          waiting_signal(500);
+          waiting_signal(500);
           waiting_signal(500);
         }
         else{
