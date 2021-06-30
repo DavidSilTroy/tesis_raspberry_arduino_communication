@@ -67,31 +67,33 @@ if __name__ == '__main__':
                         answer = answer.replace("'","")
                         answer = answer.replace("\\r\\n","")
                         answer = answer.replace("bArduino send: ","")
-                        print(answer)
+                        # print(answer)
                         arduinoMega.flushInput() #remove data after reading
 
-                        # db_s.add_data(f'measure_{count}',answer)
-                        # value_current = int(answer)
-                        # if value_current >= value_highest:
-                        #     value_highest = value_current
-                        #     error_from_highest = 0
-                        # else:
-                        #     error_from_highest = 100 - (value_current*100/value_highest)
-                        # if value_current >= value_last:
-                        #     error_from_last = 0
-                        # else:
-                        #     error_from_last = 100 - (value_current*100/value_last)
-                        # print(f'Sensor values:')
-                        # print(f'highest->{value_highest} ; last->{value_last} ; current->{value_current} ')
-                        # print(f'error from highest->{error_from_highest}')
-                        # print(f'error from last->{error_from_last}')
-                        # value_last = value_current
                     if answer == "reseted" or answer == "stoped":
+                        print(answer)
                         print('You can play, reset, stop')
                         cmd=input("What to do: ")
                         """Sending message to Arduino"""
                         arduinoMega.write(cmd.encode())
-                    
+                    elif answer != "":
+                        db_s.add_data(f'measure_{count}',answer)
+                        value_current = int(answer)
+                        if value_current >= value_highest:
+                            value_highest = value_current
+                            error_from_highest = 0
+                        else:
+                            error_from_highest = 100 - (value_current*100/value_highest)
+                        if value_current >= value_last:
+                            error_from_last = 0
+                        else:
+                            error_from_last = 100 - (value_current*100/value_last)
+                        print(f'Sensor values:')
+                        print(f'highest->{value_highest} ; last->{value_last} ; current->{value_current} ')
+                        print(f'error from highest->{error_from_highest}')
+                        print(f'error from last->{error_from_last}')
+                        value_last = value_current
+
 
             except KeyboardInterrupt:
                 cmd="stop"
