@@ -31,75 +31,48 @@ void setup() {
 }
 
 void loop() {
-  //msg="reset";
-  // put your main code here, to run repeatedly:
-  // Serial.print("Sensor: ");
-  // Serial.println(analogRead(1));
-  // Serial.print("process: ");
-  // Serial.println(process_op);
-  //delay(100);
+  //Here start the program
   readSerialPort();
   if(msg != ""){
     digitalWrite(led_working,HIGH);
+
     if(msg =="play"){
       digitalWrite(led_waiting,LOW);
-      switch (process_op){
-        case 0:
-          go_up();
-          delay(1500);
-          all_stop();
-          delay(1000);
-          process_op=1;
-          break;
-        case 1:
-          go_down();
-          delay(1200);
-          all_stop();
-          process_op=2;
-          break;
-        case 2:
-          sensor_check();
-          break;
-        default:
-          all_stop();
-          waiting_signal(50);
-          break;
+      switch (process_op)
+      {
+      case 0:
+        go_up();
+        delay(1500);
+        all_stop();
+        delay(1000);
+        go_down();
+        delay(1200);
+        all_stop();
+        sensor_check();
+        waiting_signal(50);
+        process_op+=1;
+        break;
+      default:
+        waiting_signal(100);
+        break;
       }
       
     }
-    else{
-      if(msg =="reset"){
+    if(msg =="reset"){
         go_up();
-        waiting_signal(200);
-        waiting_signal(200);
-        waiting_signal(200);
-        waiting_signal(200);
-        waiting_signal(200);
-        delay(2000);
-        sendData("reseted");
-        Serial.println("");
-        msg="";
+        waiting_signal(300);
+        waiting_signal(300);
+        waiting_signal(300);
+        waiting_signal(100);
+        waiting_signal(500);
+        all_stop();
+        msg="stop";
       }
-      else{
-        if(msg =="stop"){
+    if(msg =="stop"){
           all_stop();
-          sendData("stoped");
-          Serial.println("");
-          msg="";
-          waiting_signal(500);
-          waiting_signal(500);
-          waiting_signal(500);
-          waiting_signal(500);
           waiting_signal(500);
           waiting_signal(500);
         }
-        else{
-          msg="";
-        } 
-      }  
-    }
-
-
   }else{
     digitalWrite(led_working,LOW);
     waiting_signal(1000);
@@ -157,13 +130,13 @@ void readSerialPort(){
     }
    Serial.flush();
    if(serial_msg.length()>1){
-   msg=serial_msg;
+    msg=serial_msg;
    }
   }
 }
 
 void sendData(String msg_to_send){
-  Serial.print("Arduino send: ");
+  Serial.flush();
   Serial.print(msg_to_send);
 }
 
