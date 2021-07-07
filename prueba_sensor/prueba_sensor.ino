@@ -1,5 +1,5 @@
 //Global Variables
-String msg;
+String msg = "";
 String serial_msg;
 
 bool led_waiting_on= true;
@@ -34,67 +34,58 @@ void loop() {
   //Here start the program
   readSerialPort();
   if(msg != ""){
-    digitalWrite(led_working,HIGH);
-
     if(msg =="play"){
-      digitalWrite(led_waiting,LOW);
-      switch (process_op)
-      {
-      case 0:
+      digitalWrite(led_working,HIGH);
+      if (process_op==0){
         go_up();
-        delay(1500);
-        all_stop();
-        delay(1000);
         go_down();
-        delay(1200);
-        all_stop();
-        sensor_check();
-        waiting_signal(50);
-        process_op+=1;
-        break;
-      default:
-        waiting_signal(100);
-        break;
       }
-      
+      sensor_check();
+      waiting_signal(100);
     }
-    if(msg =="reset"){
-        go_up();
-        waiting_signal(300);
-        waiting_signal(300);
-        waiting_signal(300);
-        waiting_signal(100);
-        waiting_signal(500);
-        all_stop();
-        msg="stop";
-      }
     if(msg =="stop"){
-          all_stop();
-          waiting_signal(500);
-          waiting_signal(500);
-        }
+      go_up();
+      msg="stop1";
+      waiting_signal(400);
+      waiting_signal(400);
+      waiting_signal(200);
+    }
+    if(msg =="stop1"){
+      all_stop();
+      waiting_signal(500);
+    }
   }else{
+    //no msg.. so what to do?
     digitalWrite(led_working,LOW);
     waiting_signal(1000);
   }
 }
 
-void go_up(){
-  digitalWrite(down_signal,LOW);
-  digitalWrite(up_signal,HIGH);
-  }
-  
-void go_down(){
-  digitalWrite(up_signal,LOW);
-  digitalWrite(down_signal,HIGH);
-  }
 void all_stop(){
   digitalWrite(up_signal,LOW);
   digitalWrite(down_signal,LOW);
-  
   }
+void go_up(){
+  digitalWrite(down_signal,LOW);
+  digitalWrite(up_signal,HIGH);
+  delay(1500);
+  all_stop();
+  }
+void go_down(){
+  digitalWrite(up_signal,LOW);
+  digitalWrite(down_signal,HIGH);
+  delay(1200);
+  all_stop();
+  }
+
+void work_now(){
+  go_up();
+  go_down();
+}
+
 void sensor_check(){
   delay(800);
+  process_op=1;
   if(analogRead(1)>1){
     value_current = analogRead(1);
     if(value_current>value_last){
@@ -120,7 +111,7 @@ void sensor_check(){
   }
 }
 
-
+// Reading data from the serial port and writing it in the msg
 void readSerialPort(){
   serial_msg="";
   if(Serial.available()){
@@ -134,26 +125,11 @@ void readSerialPort(){
    }
   }
 }
-
+//Send the data is just print it
 void sendData(String msg_to_send){
-  Serial.flush();
-  Serial.print(msg_to_send);
+  Serial.println(msg_to_send);
 }
-
-void actionToDo(){
-    if(msg != ""){
-    if(msg == "takeData"){
-      int sensor_value = analogRead(1);
-      delay(10);
-      while(sensor_value!=analogRead(1)){
-        sensor_value = analogRead(1);
-      }
-      msg = String(sensor_value);
-    }
-  sendData(msg);
-  }
-}
-
+//led to say is waiting 
 void waiting_signal(int time_to_stay){
   if (led_waiting_on){
     digitalWrite(led_waiting,HIGH);

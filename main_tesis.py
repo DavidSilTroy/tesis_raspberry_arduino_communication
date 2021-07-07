@@ -1,7 +1,9 @@
 ##import libraries
 import time
+from typing import Collection
 import serial
-import ast
+import threading
+import re  
 from tesis_firestore import DB_sensors
 from data_analitics import KnwingTheError
 # from wincha_control import Wincha
@@ -13,6 +15,12 @@ t2 = 1 #time to stop in seconds
 data_sent=False #to not send all the time the same to the Arduino
 
 """Here the code start"""
+
+def read_db_status():
+    docs=db_s.doc_status.get()
+    while docs.exists == False: pass
+    return docs.to_dict()
+
 
 
 if __name__ == '__main__':
@@ -26,82 +34,55 @@ if __name__ == '__main__':
     db_s= DB_sensors()
     kte=KnwingTheError()
 
-    docs=""
-    while docs=="":
-        docs=f'{db_s.doc_status.get().to_dict()}'
-        time.sleep(0.1)    
-
-    docs_dic = ast.literal_eval(docs)
-    current_collection = docs_dic["collection_is"]
-    db_s.collection_to_add_data(current_collection)
-
-
     with serial.Serial('/dev/ttyACM0', 9600, timeout=5) as arduinoMega:
-        time.sleep(0.1) #waiting for serial to open
+        time.sleep(0.2) #waiting for serial to open
         if arduinoMega.isOpen():
             print(f'{arduinoMega.port} connected!, Arduino is working!')
             try:
-                
-                cmd=docs_dic["current"]
-                
-                answer = ""
-
+                last_action=""
                 while True:
                     
+                    answer = ""
+                    
+                    status_data = read_db_status()
+                    collection_name = status_data[u'collection_is']
+                    current_action = status_data[u'current']
 
-                    if cmd == "play":
+                    #print(f'{collection_name} y la action es {current_action}') #getting the current collection
+                    
+                    if last_action != current_action:
+                        last_action=current_action
+                        if current_action == "new":
+                            count = 1000000
+                            current_action="stop"
+
                         """Sending message to Arduino"""
-                        if data_sent != True:
-                            arduinoMega.write(cmd.encode())
-                            print(f' The current state is {cmd}')
-                            data_sent= True
-                        """Waiting for the answerd"""
-                        while arduinoMega.inWaiting()==0: pass
-
-                        """Getting the answer and cleaning it"""
-                        if arduinoMega.inWaiting()>0:
+                        arduinoMega.write(current_action.encode())
+                        print(f'The action is: {current_action}') #getting the current collection
+                    
+                    if arduinoMega.inWaiting()>0:
                             count+=1
                             answer=str(arduinoMega.readline())
-                            #print(answer)
-                            answer = answer.replace("'","")
-                            answer = answer.replace("\\r\\n","")
-                            answer = answer.replace("b","")
+                            answer= re.search("[^(')][A-Za-z0-9 ]+",answer).group() #To take only the data we need
+                            print(f'The answer is: {answer}')
                             arduinoMega.flushInput() #remove data after reading
-                            print(answer)
-                    
-                    elif cmd == "stop":
-                        """Sending message to Arduino"""
-                        if data_sent != True:
-                            arduinoMega.write(cmd.encode())
-                            print(f' The current state is {cmd}')
-                            data_sent=True
-                    
-                    elif cmd == "reset":
-                        """Sending message to Arduino"""
-                        if data_sent != True:
-                            arduinoMega.write(cmd.encode())
-                            print(f' The current state is {cmd}')
-                            data_sent=True
-                    else:
-                        pass
-                        
-                    # time.sleep(0.2)
 
-
-                    if answer != "":
+                    if re.compile("[0-9]+").match(answer) is not None:
+                        print(f'tenemos numerous: {answer}')
                         """Saving the data in the database"""
-                        #db_s.add_data(f'measure_{count}',answer)
+                        db_s.add_data(f'measure_{count}',answer)
                         """Analazing the data and printing result"""
-                        #here the new class
-                        #print(kte.adding_value(answer))
-                    
-                    docs=f'{db_s.doc_status.get().to_dict()}' #asking for db data
-                    docs_dic = ast.literal_eval(docs)
-                    new_state = docs_dic["current"]
+                        print(kte.adding_value(answer))
 
-                    if new_state!=cmd:
-                        cmd = new_state
-                        data_sent=False
+                    elif re.compile("[A-Za-z]+").match(answer) is not None:
+                        print(f'tenemos palabraus: {answer}')
+
+                    else:
+                        #nothing here
+                        pass
+
+                    
+                    time.sleep(1)
 
             except KeyboardInterrupt:
                 cmd="stop"

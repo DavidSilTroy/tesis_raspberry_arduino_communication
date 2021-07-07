@@ -24,5 +24,7 @@ class DB_sensors:
     def add_data(self,db_document,db_data):
         current_date = datetime.datetime.now()
         self.db.collection(self.db_collection).document(db_document).set({"value":str(db_data),"date":str(current_date)})
+
+
     
         
