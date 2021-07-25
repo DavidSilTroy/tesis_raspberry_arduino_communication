@@ -1,20 +1,20 @@
 //Global Variables
 String msg = "";
-String serial_msg;
+String serial_msg = "";
 
 bool led_waiting_on= true;
 
-int up_signal=6;
-int down_signal=7;
-int led_waiting=8;
-int led_working=9;
+int up_signal     =6;
+int down_signal   =7;
 
-int process_op=0;
-int ss_count = 0;
+int led_waiting   =8;
+int led_working   =9;
 
-int value_last=0;
-int value_current=1;
-int value_highest=1;
+int process_op    =0;
+int ss_count      =0;
+
+int value_sensor  =0;
+int count_value   =0;
 
 
 
@@ -26,8 +26,6 @@ void setup() {
     
   Serial.begin(9600); //to print the values
   
-  msg = ""; 
-  serial_msg = ""; 
 }
 
 void loop() {
@@ -36,19 +34,23 @@ void loop() {
   if(msg != ""){
     if(msg =="play"){
       digitalWrite(led_working,HIGH);
-      if (process_op==0){
-        go_up();
-        go_down();
+      go_up();
+      go_down();
+      value_sensor=0;
+      count_value=0;
+      delay(200);
+      for(int i=0; i<=5; i++){
+          value_sensor=value_sensor+analogRead(1);
+          count_value++;
+          delay(100);
       }
-      sensor_check();
-      waiting_signal(100);
+      value_sensor=value_sensor/count_value;
+      sendData(String(value_sensor));
     }
     if(msg =="stop"){
       go_up();
       msg="stop1";
-      waiting_signal(400);
-      waiting_signal(400);
-      waiting_signal(200);
+      waiting_signal(300);
     }
     if(msg =="stop1"){
       all_stop();
@@ -68,44 +70,15 @@ void all_stop(){
 void go_up(){
   digitalWrite(down_signal,LOW);
   digitalWrite(up_signal,HIGH);
-  delay(1500);
+  delay(1200);
   all_stop();
   }
 void go_down(){
   digitalWrite(up_signal,LOW);
   digitalWrite(down_signal,HIGH);
-  delay(1200);
+  delay(1000);
   all_stop();
   }
-
-
-void sensor_check(){
-  delay(800);
-  process_op=1;
-  if(analogRead(1)>1){
-    value_current = analogRead(1);
-    if(value_current>value_last){
-       value_last= value_current;
-       value_current=0;
-       ss_count=0;
-     }
-     else{
-       ss_count+=1;
-     }
-  }else{
-    process_op =0;
-  }
-
-  if(ss_count>2){
-    sendData(String(value_last));
-    Serial.println("");
-    value_current=0;
-    value_last=0;
-    process_op =0;
-    digitalWrite(led_working,LOW);
-    delay(500);
-  }
-}
 
 // Reading data from the serial port and writing it in the msg
 void readSerialPort(){
