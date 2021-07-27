@@ -17,6 +17,11 @@ int value_sensor  =0;
 int count_value   =0;
 
 
+int timeToUp      =500;             //time in ms
+int timeToDown    =500;             //time in ms
+int timeToReadS   =10;              //time in ms
+int theReads      =600/timeToReadS; //The number of repetitions in 600 ms
+
 
 void setup() {
   pinMode(up_signal,OUTPUT);    // output signal
@@ -38,11 +43,11 @@ void loop() {
       go_down();
       value_sensor=0;
       count_value=0;
-      delay(200);
-      for(int i=0; i<=5; i++){
+      delay(10);
+      for(int i=0; i<=theReads; i++){
           value_sensor=value_sensor+analogRead(1);
           count_value++;
-          delay(100);
+          delay(timeToReadS);
       }
       value_sensor=value_sensor/count_value;
       sendData(String(value_sensor));
@@ -56,7 +61,8 @@ void loop() {
       all_stop();
       waiting_signal(500);
     }
-  }else{
+  }
+  else{
     //no msg.. so what to do?
     digitalWrite(led_working,LOW);
     waiting_signal(1000);
@@ -70,13 +76,13 @@ void all_stop(){
 void go_up(){
   digitalWrite(down_signal,LOW);
   digitalWrite(up_signal,HIGH);
-  delay(1200);
+  delay(timeToUp);
   all_stop();
   }
 void go_down(){
   digitalWrite(up_signal,LOW);
   digitalWrite(down_signal,HIGH);
-  delay(1000);
+  delay(timeToDown);
   all_stop();
   }
 

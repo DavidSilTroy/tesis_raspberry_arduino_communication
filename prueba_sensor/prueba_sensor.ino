@@ -18,6 +18,7 @@ int value_highest=1;
 
 
 
+
 void setup() {
   pinMode(up_signal,OUTPUT);    // output signal
   pinMode(down_signal,OUTPUT);  // output signal

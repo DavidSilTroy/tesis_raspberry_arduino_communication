@@ -9,7 +9,7 @@ from data_analitics import KnwingTheError
 
 #Global variables
 print('Starting..')
-current_collection_name = ""
+current_doc_name = ""
 the_loops=0
 
 #just a welcome message!
@@ -22,8 +22,6 @@ def welcome_here():
 
 #here comes the fun part!
 if __name__ == '__main__':
-    #I should make this better!
-    count = 1000000
 
     #displaying messages from welcome
     welcome_here()
@@ -45,6 +43,7 @@ if __name__ == '__main__':
             print(f'{arduinoMega.port} connected!, Arduino is working!')
             
             last_action=""
+            stop_count = 0
 
             while True:
 
@@ -57,27 +56,30 @@ if __name__ == '__main__':
                     #checking if the data exists
                     if docs.exists:
                         status_data = docs.to_dict()
-                        collection_name = status_data[u'collection_is']
-                        current_action = status_data[u'current']
+                        doc_name = status_data[u'id_sensor']
+                        current_action = status_data[u'action']
                         
                         #if the collection change!
-                        if(collection_name != current_collection_name):
-                            count = 1000000
-                            the_loops=0
-                            current_collection_name=collection_name
+                        if(doc_name != current_doc_name):
+                            current_doc_name=doc_name
 
                         #if the action change!
                         if last_action != current_action:
                             last_action=current_action
-                            the_loops=0
-
                             """Sending message to Arduino"""
                             arduinoMega.write(current_action.encode())
                             print(f'The action is: {current_action}') #getting the current collection
 
+                        #if program was stoped too much time
+                        if current_action == "stop":
+                            time.sleep(2)
+                            stop_count+=1
+                            if stop_count >= 90:
+                                print("Program in stop too much time..")
+                                break
+                        
                         #if arduino is sending something
                         if arduinoMega.inWaiting()>0:
-                                count+=1
                                 answer=str(arduinoMega.readline())
                                 answer= re.search("[^(')][A-Za-z0-9 ]+",answer).group() #To take only the data we need
                                 print("\n\nNew Data..")
@@ -88,11 +90,9 @@ if __name__ == '__main__':
                         if re.compile("[0-9]+").match(answer) is not None:
                             # print(f'tenemos numerous: {answer}')
                             """Saving the data in the database"""
-                            db_s.collection_to_add_data(collection_name)
-                            print(f'database collection name is: {collection_name}')
-                            print(f'id in collection: measure_{count}')
+                            print(f'database doc name is: {doc_name}')
                             print(f'value is: {answer} \n')
-                            db_s.add_data(f'measure_{count}',answer)
+                            db_s.add_data(doc_name,answer)
                             the_loops+=1
 
                             """Analazing the data and printing result"""
@@ -102,13 +102,30 @@ if __name__ == '__main__':
                                 db_s.add_new_action("stop")
                                 print("Machine stop!")
                                 print(f'error is {kte.error_from_highest} and loops in {the_loops}\n\n\n')
+                                the_loops=0
+                                time.sleep(2)
                         elif re.compile("[A-Za-z]+").match(answer) is not None:
                             # print(f'tenemos palabraus: {answer}')
                             pass
                         else:
                             #nothing here yet
                             pass
-                        
+                    else:
+                        print("can't conect to firestore..")
+                        print("What do you want to do?")
+                        print("[1] try again \n [2] Continiu with sqlite only \n Or just Enter to close the program")
+                        cmd = input('write the number:')
+                        if(cmd=="1"):
+                            pass
+                        elif(cmd=="2"):
+                            print("Using Sqlite only..")
+                            print("kidding! hahah")
+                            break
+                        else:
+                            cmd="stop"
+                            arduinoMega.write(cmd.encode())
+                            break
+
                 #when interrupt with ctrl + c
                 except KeyboardInterrupt:
                     cmd="stop"
