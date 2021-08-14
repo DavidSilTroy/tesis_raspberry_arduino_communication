@@ -13,12 +13,12 @@ int led_working   =9;
 int process_op    =0;
 int ss_count      =0;
 
-int value_sensor  =0;
+long value_sensor  =0;
 int count_value   =0;
 
 
-int timeToUp      =500;             //time in ms
-int timeToDown    =500;             //time in ms
+int timeToUp      =1000;             //time in ms
+int timeToDown    =900;             //time in ms
 int timeToReadS   =10;              //time in ms
 int theReads      =600/timeToReadS; //The number of repetitions in 600 ms
 
@@ -47,7 +47,6 @@ void loop() {
       for(int i=0; i<=theReads; i++){
           value_sensor=value_sensor+analogRead(1);
           count_value++;
-          delay(timeToReadS);
       }
       value_sensor=value_sensor/count_value;
       sendData(String(value_sensor));
@@ -72,6 +71,7 @@ void loop() {
 void all_stop(){
   digitalWrite(up_signal,LOW);
   digitalWrite(down_signal,LOW);
+  delay(100);
   }
 void go_up(){
   digitalWrite(down_signal,LOW);

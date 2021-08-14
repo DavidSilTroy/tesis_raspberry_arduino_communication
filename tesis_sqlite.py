@@ -67,6 +67,6 @@ db.add_data("500")
 time.sleep(1)
 db.add_data("550") """
 #print(db.get_data_from_column("sensors_tests","*"))
-print(db.get_data_from_column("new_400_1hr","*"))
+#print(db.get_data_from_column("new_400_1hr","*"))
     
        

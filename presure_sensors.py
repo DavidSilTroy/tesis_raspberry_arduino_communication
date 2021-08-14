@@ -4,9 +4,9 @@ fsr_400_radious =2.54   #[mm]
 fsr_402_radious =7.34   #[mm]
 df9_40_radious  =3.75   #[mm]
 
-piston_width    =22     #[mm] (49, 22, 12)
-piston_height   =60     #[mm] (99, 67, 67)
-kg_for_press    =34     #[kg]
+piston_width    =51     #[mm] (49, 22, 12)
+piston_height   =111     #[mm] (99, 67, 67)
+kg_for_press    =20     #[kg]
 
 area_for_press  =   (piston_height/1000)*(piston_width/1000)
 force_for_press =   kg_for_press*9.81 # N = (kg*m/s2)
@@ -36,3 +36,9 @@ if __name__=='__main__':
     print(f'FSR-402 force is: {AreaSensor(fsr_402_radious)*total_pressure} [N]')
     print(f'FSR-400 force is: {AreaSensor(fsr_400_radious)*total_pressure} [N]')
     print(f'DF9-40 force is: {AreaSensor(df9_40_radious)*total_pressure} [N]')
+    print("")
+    print(f'FSR-402 force is: {AreaSensor(fsr_402_radious)*total_pressure/9.81} [kg]')
+    print(f'FSR-400 force is: {AreaSensor(fsr_400_radious)*total_pressure/9.81} [kg]')
+    print(f'DF9-40 force is: {AreaSensor(df9_40_radious)*total_pressure/9.81} [kg]')
+
+    
